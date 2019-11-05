@@ -9,12 +9,12 @@
         active-text-color="#1EABFF"
         router
       >
-        <template v-for="(menu,index) in menus[1].children">
-          <template>
-            <el-menu-item :index="menu.path" :key="index">
-              <i :class="menu.icon"></i>
-              <span>{{menu.name}}</span>
-            </el-menu-item>
+        <template v-if="menus[1]">  
+          <template v-for="(menu,index) in menus[1].children">
+              <el-menu-item :index="menu.path" :key="index">
+                <i :class="menu.icon"></i>
+                <span>{{menu.name}}</span>
+              </el-menu-item>
           </template>
         </template>
       </el-menu>

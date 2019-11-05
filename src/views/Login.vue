@@ -4,8 +4,8 @@
       <h1 class="title">登录</h1>
       <el-divider></el-divider>
       <el-form :model="ruleForm" label-position="right" style="padding-right: 62px;" status-icon :rules="rules" ref="ruleForm" label-width="134px" class="demo-ruleForm">
-        <el-form-item label="用户名" prop="userCode">
-          <el-input size="larger" v-model.number="ruleForm.userCode" prefix-icon="el-icon-user" placeholder="请输入用户名"></el-input>
+        <el-form-item label="用户名" prop="userName">
+          <el-input size="larger" v-model.number="ruleForm.userName" prefix-icon="el-icon-user" placeholder="请输入用户名"></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="userPwd">
           <el-input type="password" v-model="ruleForm.userPwd" prefix-icon="el-icon-lock" placeholder="请输入密码" autocomplete="off"></el-input>
@@ -19,22 +19,16 @@
 </template>
 
 <script>
-//   import { mapState } from "vuex";
-//   import md5 from 'js-md5';
+  import md5 from 'js-md5';
   import { reqUserLogin } from "../api";
   export default {
     data() {
-      var checkuserCode = (rule, value, callback) => {
+      var checkuserName = (rule, value, callback) => {
         if (!value) {
-          return callback(new Error('用户名不能为空'));
+          callback(new Error('用户名不能为空'));
+        } else {
+          callback()
         }
-        setTimeout(() => {
-          if(!/^[0-9a-zA-Z]{6,20}/.test(value)) {
-            callback(new Error('请输入6~20位数字或字母'))
-          } else {
-            callback()
-          }
-        }, 1000);
       };
       var validateuserPwd = (rule, value, callback) => {
         if (value === '') {
@@ -46,7 +40,7 @@
       return {
         ruleForm: {
           userPwd: '',
-          userCode: '',
+          userName: '',
         },
         loading: false,
         redirect: undefined,
@@ -55,43 +49,39 @@
           userPwd: [
             { validator: validateuserPwd, trigger: 'blur' }
           ],
-          userCode: [
-            { validator: checkuserCode, trigger: 'blur' }
+          userName: [
+            { validator: checkuserName, trigger: 'blur' }
           ]
         }
       };
     },
     methods: {
-      submitForm() {
-        this.$router.push({
-          path: '/project'
-        })
+      submitForm(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            let {userPwd, userName} = this.ruleForm;
+            let userPass = md5(userPwd.toLocaleUpperCase());
+            this.login(userPass, userName);
+          } else {
+            return false;
+          }
+        });
       },
-    //   submitForm(formName) {
-    //     this.$refs[formName].validate((valid) => {
-    //       if (valid) {
-    //         let {userPwd, userCode} = this.ruleForm;
-    //         let userPass = md5(userPwd.toLocaleUpperCase());
-    //         this.login(userPass, userCode);
-    //       } else {
-    //         return false;
-    //       }
-    //     });
-    //   },
-      async login(userPwd, userCode) {
-        let result = await reqUserLogin({userCode, userPwd})
+      async login(userPwd, userName) {
+        window.console.log({userName, userPwd})
+        let result = await reqUserLogin({userName, userPwd})
+        window.console.log(result)
         if(result.code === '0000') {
-          const token = result.token
-          const shopCode = result.shopCode
-          const userTypeCode = result.userTypeCode
           this.loading = true
-          this.$store.dispatch('recordUser', {token, userCode, shopCode, userTypeCode})
-            .then(() => {
-              this.loading = false
-              this.$router.replace('/project')
-            }).catch(() => {
-              this.loading = false
-            })
+          this.$router.push({
+            path: '/project',
+            name: '项目管理',
+            params: {
+              name: '项目管理',
+              userName: result.userName
+            }
+          })
+          window.sessionStorage.setItem('userName', result.userName);
         } else {
           this.$alert(result.msg, '消息', {
             confirmButtonText: '确定',

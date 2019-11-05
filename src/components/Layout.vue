@@ -1,13 +1,15 @@
 <template>
   <div class="app_wapper">
     <el-container style="width: 100%; height:100%; margin: 0;">
-      <el-header style="text-align: right; font-size: 12px">
-        <div style="float:left; vertical-algin:middle;">
+      <el-header style="text-align: right; font-size: 16px">
+        <div class="logo">
             <img src="../assets/imgs/logo.png" alt />
+            <span>天臣监控管理系统</span>
         </div>
-        <el-button @click="outSystem" size="mini" plain type="primary">退出</el-button>
+        <span style="margin-right:10px;">{{userName}}</span>
+        <el-button @click="outSystem" type="small">退出</el-button>
       </el-header>
-      <!-- 右侧内容区域 -->
+      <!-- 内容区域 -->
       <el-container class="app_content">
         <!-- 左侧菜单 -->
         <el-aside class="slider_container">
@@ -26,25 +28,27 @@
 <script>
 // 左侧菜单组件
 import SideMenus from "@/components/SideMenus.vue";
-// import { permissionRouter } from '@/router'
 export default {
+  data() {
+    return {
+
+    };
+  },
   computed: {
     getRoutes() {
       return global.antRouter;
+    },
+    userName() {
+      return window.sessionStorage.getItem('userName')
     }
   },
   components: {
     SideMenus
   },
-  data() {
-    return {
-      userRole: "Topest"
-    };
-  },
   methods: {
     outSystem() {
       //退出系统
-      localStorage.setItem("userRole", "unload");
+      sessionStorage.setItem("userName", "");
       // 跳转到登录页的时候顺便刷新
       window.location.href = window.location.origin + window.location.pathname;
     }
@@ -56,7 +60,7 @@ export default {
 };
 </script>
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="scss">
 /*wapper*/
 .app_wapper {
   position: relative;
@@ -75,7 +79,7 @@ export default {
     height: 100%;
     width: 100%;
     padding: 30px;
-    background: #fff;
+    background: #f7faff;
 }
 
 .app_wapper .el-aside{
@@ -83,5 +87,15 @@ export default {
   height: 100%;
   z-index: 1001;
   background-color: #2B3C6F;
+}
+
+.logo {
+  float: left;
+  font-size: 16px;
+}
+
+.logo img {
+  vertical-align: middle;
+  margin-right: 10px;
 }
 </style>

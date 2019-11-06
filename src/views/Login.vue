@@ -68,9 +68,7 @@
         });
       },
       async login(userPwd, userName) {
-        window.console.log({userName, userPwd})
         let result = await reqUserLogin({userName, userPwd})
-        window.console.log(result)
         if(result.code === '0000') {
           this.loading = true
           this.$router.push({
@@ -82,6 +80,7 @@
             }
           })
           window.sessionStorage.setItem('userName', result.userName);
+          window.sessionStorage.setItem('status', true);
         } else {
           this.$alert(result.msg, '消息', {
             confirmButtonText: '确定',

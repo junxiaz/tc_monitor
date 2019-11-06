@@ -49,11 +49,19 @@ export default {
     outSystem() {
       //退出系统
       sessionStorage.setItem("userName", "");
+      sessionStorage.setItem("status", false);
       // 跳转到登录页的时候顺便刷新
       window.location.href = window.location.origin + window.location.pathname;
+    },
+    checkStatus() {
+      if(sessionStorage.getItem(status)) {
+        // 跳转到登录页的时候顺便刷新
+        window.location.href = window.location.origin + window.location.pathname;
+      }
     }
   },
   mounted() {
+    this.checkStatus();
     // console.log("菜单的展开跟路由有关系，查看elementui--el-menu  的default-active 属性")
     // console.log(this.$route.path)
   }

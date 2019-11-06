@@ -12,7 +12,7 @@
         <el-table-column align="center" prop="userType" label="用户类型">
           <template slot-scope="scope">
             <template v-if="scope.row.userType == '1'">管理员</template>
-            <template v-else>普通用户</template>
+            <template v-if="scope.row.userType == '2'">普通用户</template>
           </template>
         </el-table-column>
         <el-table-column align="center" prop="userMobile" label="手机"></el-table-column>
@@ -31,7 +31,7 @@
             background
             class="myStyle"
             layout="total,prev, pager, next"
-            :hide-on-single-page="params.total"
+            :hide-on-single-page="params.total == 0?true:false"
             :page-size="params.pageSize"
             :total="params.total"
             @current-change="handleCurrentChange"
@@ -39,7 +39,7 @@
         </el-col>
       </el-row>
       <!-- 添加弹框 -->
-      <el-dialog title="添加用户" :visible.sync="addDialog" width="635px" center>
+      <el-dialog title="添加用户" :visible.sync="addDialog" width="635px" center :before-close="((done) => {handleClose(done,'addForm')})">
         <el-form :inline="true" ref="addForm" :rules="rules" :model="form" label-width="80px">
           <el-form-item label="用户账号" prop="userCode">
             <el-input v-model="form.userCode" autocomplete="off"></el-input>
@@ -68,10 +68,31 @@
         </div>
       </el-dialog>
       <!-- 修改弹框 -->
-      <el-dialog title="修改用户" :visible.sync="updateDialog" width="30%" center>
-        <el-form ref="updateForm" :rules="rules" :model="updateForm" label-width="80px">
-          <el-form-item label="用户名称" prop="name">
+      <el-dialog title="修改用户" :visible.sync="updateDialog" width="635px" center :before-close="((done) => {handleClose(done,'updateForm')})">
+        <el-form ref="updateForm" :inline="true" :rules="rules" :model="updateForm" label-width="80px">
+          <!-- <el-form-item label="用户名称" prop="name">
             <el-input v-model="updateForm.name" placeholder="请输入用户名称" autocomplete="off"></el-input>
+          </el-form-item> -->
+          <el-form-item label="用户账号" prop="userCode">
+            <el-input v-model="updateForm.userCode" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="密码" prop="userPwd">
+            <el-input v-model="updateForm.userPwd" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="用户姓名" prop="userName">
+            <el-input v-model="updateForm.userName" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="手机" prop="userMobile">
+            <el-input v-model="updateForm.userMobile" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="用户类型" prop="userType">
+            <el-select v-model="updateForm.userType">
+              <el-option label="管理员" value="1"></el-option>
+              <el-option label="普通用户" value="2"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="邮箱" prop="userMail">
+            <el-input style="width: 300px;" v-model="updateForm.userMail" autocomplete="off"></el-input>
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
@@ -83,7 +104,7 @@
 </template>
 
 <script>
-import { reqListUser, addUser } from "@/api";
+import { reqListUser, addUser, updateUser,deleteUser } from "@/api";
 export default {
   data() {
     return {
@@ -103,9 +124,7 @@ export default {
         userPwd: "",
         userType: ""
       },
-      updateForm: {
-        name: ""
-      },
+      updateForm: {},
       //   表单输入规则
       rules: {
         userCode: [
@@ -118,20 +137,20 @@ export default {
           { required: true, message: "请输入用户姓名", trigger: "blur" }
         ],
         userMobile: [
-          { required: true, message: "请输入手机号码", trigger: "blur" }
+          { required: true, pattern: /^1[34578]\d{9}$/, message: "请输入手机号码", trigger: "blur" }
         ],
         userType: [
           { required: true, message: "请选择用户类型", trigger: "blur" }
         ],
-        userMail: [{ required: true, message: "请输入邮箱", trigger: "blur" }]
+        userMail: [
+          { required: true, message: "请输入邮箱", trigger: "blur" },
+          { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
+        ]
       },
       tableData: []
     };
   },
   methods: {
-    handleClick(row) {
-      window.console.log(row);
-    },
     //页码
     handleCurrentChange(val) {
       this.params.pageNum = val;
@@ -140,23 +159,19 @@ export default {
     //打开修改弹框
     handleEdit(index, row) {
       this.updateDialog = true;
-      this.updateForm.name = row.name;
-      window.console.log(index, row);
+      this.updateForm = row;
+      this.updateForm.userType = String(row.userType)
     },
+    // 删除数据
     handleDelete(index, row) {
       window.console.log(index, row);
       this.$confirm("此操作将永久删除该数据, 是否继续?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
-      })
-        .then(() => {
-          this.$message({
-            type: "success",
-            message: "删除成功!"
-          });
-        })
-        .catch(() => {
+      }).then(() => {
+          this.deleteTable(row);
+        }).catch(() => {
           this.$message({
             type: "info",
             message: "已取消删除"
@@ -174,10 +189,25 @@ export default {
             // 新增数据后刷新表格
           } else if (formName == "updateForm") {
             this.updateDialog = false;
-            window.console.log(this.updateForm.name);
+            this.updateTable();
           }
         }
       });
+    },
+    // 取消弹框并清空
+    handleClose(done,formName) {
+      done();         
+      if(formName == "addForm"){
+        this.addDialog = false;
+      }
+      else if(formName == "updateForm"){
+        this.updateDialog = false;
+      }
+      if (this.$refs[formName] !== undefined) {
+        this.$nextTick(() => {
+          this.$refs[formName].resetFields();
+        })
+      }     
     },
     // 异步添加数据
     async addTable() {
@@ -186,6 +216,39 @@ export default {
       if (result.code === "0000") {
         this.$message({
           message: "恭喜你，数据插入成功",
+          type: "success"
+        });
+        this.initTable();
+      } else {
+        this.$message({
+          message: result.msg,
+          type: "error"
+        });
+      }
+    },
+    // 异步修改数据
+    async updateTable() {
+      const data = this.updateForm;
+      const result = await updateUser(data);
+      if (result.code === "0000") {
+        this.$message({
+          message: "恭喜你，数据修改成功",
+          type: "success"
+        });
+        this.initTable();
+      } else {
+        this.$message({
+          message: result.msg,
+          type: "error"
+        });
+      }
+    },
+    // 异步修改数据
+    async deleteTable(data) {
+      const result = await deleteUser(data);
+      if (result.code === "0000") {
+        this.$message({
+          message: "数据删除成功",
           type: "success"
         });
         this.initTable();

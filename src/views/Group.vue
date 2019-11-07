@@ -8,10 +8,20 @@
       <!-- 数据表格 -->
       <el-table :data="tableData" border>
         <el-table-column align="center" prop="groupName" label="用户组名称"></el-table-column>
-        <el-table-column align="center" prop="groupName" label="所属用户">
-          <template slot-scope="scope">
-            <template v-if="scope.row.userIds == '1'">管理员</template>
-            <template v-else>普通用户组</template>
+        <el-table-column align="center" prop="toUserList" label="主送人">
+          <template slot-scope="scope" v-if="scope.row.toUserList.length">
+            <template v-for="(item, index) in scope.row.toUserList">
+              <span v-if="scope.row.toUserList.length-1 > index" :key="index">{{item.userName}},</span>
+              <span v-else :key="index">{{item.userName}}</span>
+            </template>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="ccUserList" label="抄送人">
+          <template slot-scope="scope" v-if="scope.row.ccUserList.length">
+            <template v-for="(item, index) in scope.row.ccUserList">
+              <span v-if="scope.row.ccUserList.length-1 > index" :key="index">{{item.userName}},</span>
+              <span v-else :key="index">{{item.userName}}</span>
+            </template>
           </template>
         </el-table-column>
         <el-table-column align="center" fixed="right" label="操作" width="100">
@@ -26,9 +36,7 @@
         <el-col align="right">
           <el-pagination
             background
-            class="myStyle"
             layout="total,prev, pager, next"
-            :hide-on-single-page="params.total == 0?true:false"
             :page-size="params.pageSize"
             :total="params.total"
             @current-change="handleCurrentChange"
@@ -36,14 +44,35 @@
         </el-col>
       </el-row>
       <!-- 添加弹框 -->
-      <el-dialog title="添加用户组" :visible.sync="addDialog" width="461px" center :before-close="((done) => {handleClose(done,'addForm')})">
+      <el-dialog
+        title="添加用户组"
+        :visible.sync="addDialog"
+        width="461px"
+        center
+        :before-close="((done) => {handleClose(done,'addForm')})"
+      >
         <el-form ref="addForm" :rules="rules" :model="form" label-width="100px">
           <el-form-item label="用户组名称" prop="groupName">
             <el-input v-model="form.groupName" autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item label="选择用户" prop="userIds">
-            <el-select v-model="form.userIds" multiple>
-              <el-option v-for="item in option" :key="item.id" :label="item.userName" :value="item.id"></el-option>
+          <el-form-item label="主送人" prop="toUserId">
+            <el-select v-model="form.toUserId" multiple>
+              <el-option
+                v-for="item in option"
+                :key="item.id"
+                :label="item.userName"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="抄送人" prop="ccUserId">
+            <el-select v-model="form.ccUserId" multiple>
+              <el-option
+                v-for="item in option"
+                :key="item.id"
+                :label="item.userName"
+                :value="item.id"
+              ></el-option>
             </el-select>
           </el-form-item>
         </el-form>
@@ -52,15 +81,35 @@
         </div>
       </el-dialog>
       <!-- 修改弹框 -->
-      <el-dialog title="修改用户组" :visible.sync="updateDialog" width="635px" center :before-close="((done) => {handleClose(done,'updateForm')})">
-        <el-form ref="updateForm" :rules="rules" :model="updateForm" label-width="80px">
-          <el-form-item label="用户组账号" prop="groupName">
+      <el-dialog
+        title="修改用户组"
+        :visible.sync="updateDialog"
+        width="461px"
+        center
+        :before-close="((done) => {handleClose(done,'updateForm')})"
+      >
+        <el-form ref="updateForm" :rules="rules" :model="updateForm" label-width="100px">
+          <el-form-item label="用户组名称" prop="groupName">
             <el-input v-model="updateForm.groupName" autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item label="用户组类型" prop="userIds">
-            <el-select v-model="updateForm.userIds">
-              <el-option label="管理员" value="1"></el-option>
-              <el-option label="普通用户组" value="2"></el-option>
+          <el-form-item label="主送人" prop="toUserId">
+            <el-select v-model="updateForm.toUserId" multiple>
+              <el-option
+                v-for="item in option"
+                :key="item.id"
+                :label="item.userName"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="抄送人" prop="ccUserId">
+            <el-select v-model="updateForm.ccUserId" multiple>
+              <el-option
+                v-for="item in option"
+                :key="item.id"
+                :label="item.userName"
+                :value="item.id"
+              ></el-option>
             </el-select>
           </el-form-item>
         </el-form>
@@ -73,38 +122,46 @@
 </template>
 
 <script>
-import { reqListUser, reqListGroupUser, addGroupUser, updateGroupUser, deleteGroupUser } from "@/api";
+import {
+  reqListUser,
+  reqListGroupUser,
+  addGroupUser,
+  updateGroupUser,
+  deleteGroupUser
+} from "@/api";
 export default {
   data() {
     return {
-      value: false,
-      addDialog: false,
-      updateDialog: false,
-      params: {
+      addDialog: false,  //添加弹框开关
+      updateDialog: false,  //修改弹框开关
+      params: {  //列表参数
         pageSize: 10,
         pageNum: 1,
         total: 0
       },
-      form: {
+      form: {  //添加弹框数据
         groupName: "",
-        userIds: []
+        toUserId: [],
+        ccUserId: []
       },
-      updateForm: {},
-      //表单输入规则
-      rules: {
+      updateForm: {},  //修改弹框数据
+      rules: {  //表单输入规则
         groupName: [
           { required: true, message: "请输入用户组账号", trigger: "blur" }
         ],
-        userIds: [
+        toUserId: [
           { required: true, message: "请选择用户组类型", trigger: "change" }
         ],
+        ccUserId: [
+          { required: true, message: "请选择用户组类型", trigger: "change" }
+        ]
       },
-      tableData: [], //
-      option: [], //所有用户
+      tableData: [], //表格数据
+      option: [] //所有用户--select
     };
   },
   methods: {
-    //页码
+    //页码改变
     handleCurrentChange(val) {
       this.params.pageNum = val;
       this.initTable();
@@ -113,7 +170,10 @@ export default {
     handleEdit(index, row) {
       this.updateDialog = true;
       this.updateForm = row;
-      this.updateForm.userIds = String(row.userIds)
+      window.console.log(row.toUserList);
+      row.toUserList.map(item => this.updateForm.toUserId.push(item.userCode));
+      row.ccUserList.map(item => this.updateForm.ccUserId.push(item.userCode));
+      // this.updateForm.toUserId = String(row.toUserId)
     },
     handleDelete(index, row) {
       window.console.log(index, row);
@@ -137,7 +197,6 @@ export default {
           if (formName == "addForm") {
             this.addDialog = false;
             this.addTable();
-            this.handleClose('',formName)
             // 新增数据后刷新表格
           } else if (formName == "updateForm") {
             this.updateDialog = false;
@@ -147,26 +206,25 @@ export default {
       });
     },
     // 取消弹框并清空
-    handleClose(done,formName) {
-      if(done) {
-        done();         
+    handleClose(done, formName) {
+      if (done) {
+        done();
       }
-      if(formName == "addForm"){
+      if (formName == "addForm") {
         this.addDialog = false;
-      }
-      else if(formName == "updateForm"){
+      } else if (formName == "updateForm") {
         this.updateDialog = false;
       }
       if (this.$refs[formName] !== undefined) {
         this.$nextTick(() => {
           this.$refs[formName].resetFields();
-        })
-      }     
+        });
+      }
     },
     // 异步添加数据
     async addTable() {
       const data = this.form;
-      window.console.log(data)
+      window.console.log(data);
       const result = await addGroupUser(data);
       if (result.code === "0000") {
         this.$message({
@@ -174,6 +232,7 @@ export default {
           type: "success"
         });
         this.initTable();
+        this.handleClose("", "addForm");
       } else {
         this.$message({
           message: result.msg,
@@ -198,7 +257,7 @@ export default {
         });
       }
     },
-    // 异步修改数据
+    // 异步删除数据
     async deleteTable(data) {
       const result = await deleteGroupUser(data);
       if (result.code === "0000") {
@@ -223,7 +282,7 @@ export default {
         this.params.total = result.datas.total;
       }
     },
-    // 异步获取列表信息
+    // 异步获取用户选择框信息
     async initOption() {
       const data = this.params;
       const result = await reqListUser(data);

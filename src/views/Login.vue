@@ -71,6 +71,8 @@
         let result = await reqUserLogin({userName, userPwd})
         if(result.code === '0000') {
           this.loading = true
+          window.sessionStorage.setItem('userName', result.userName);
+          window.sessionStorage.setItem('status', true);
           this.$router.push({
             path: '/project',
             name: '项目管理',
@@ -79,8 +81,6 @@
               userName: result.userName
             }
           })
-          window.sessionStorage.setItem('userName', result.userName);
-          window.sessionStorage.setItem('status', true);
         } else {
           this.$alert(result.msg, '消息', {
             confirmButtonText: '确定',
@@ -95,31 +95,33 @@
 </script>
 
 <style lang="scss">
-.el-divider {
-  background: #1EABFF;
-  height: 2px;
-}
-.el-form-item__label {
-  font-size: 20px;
-  color: #2C2C2C;
-}
-.el-input__inner {
-  height: 50px;
-  line-height: 50px;  
-  background: #FAFAFA;
-  border: 1px solid #979797;
-  border-radius: 7px;
-  font-size: 20px;
-  color: #939393;
-  padding-left: 48px!important;
-}
-.el-input__icon {
-  font-size: 23px;
-  line-height: 50px;
-  width: 48px;
-}
-.el-form-item {
-    margin-bottom: 40px;
+.login {
+  .el-divider {
+    background: #1EABFF;
+    height: 2px;
+  }
+  .el-form-item__label {
+    font-size: 20px;
+    color: #2C2C2C;
+  }
+  .el-input__inner {
+    height: 50px;
+    line-height: 50px;  
+    background: #FAFAFA;
+    border: 1px solid #979797;
+    border-radius: 7px;
+    font-size: 20px;
+    color: #939393;
+    padding-left: 48px!important;
+  }
+  .el-input__icon {
+    font-size: 23px;
+    line-height: 50px;
+    width: 48px;
+  }
+  .el-form-item {
+      margin-bottom: 40px;
+  }
 }
 </style>
 

@@ -1,11 +1,12 @@
 <template>
   <div id="app">
-    <router-view />
+    <keep-alive><router-view /></keep-alive>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import url('./assets/css/reset.css');
+@import url('./assets/css/index.scss');
 </style>
 
 <script>

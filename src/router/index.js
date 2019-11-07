@@ -3,6 +3,11 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 
+const routerPush = Router.prototype.push
+Router.prototype.push = function push(location) {
+    return routerPush.call(this, location).catch(error => error)
+}
+
 export const fixedRouter = [
     {
         path: '/',
@@ -35,7 +40,7 @@ router.beforeEach((to, from, next) => {
     // 如果登录了
     if (GetRole) {
         next() //next()方法后的代码也会执行
-        if(!addRouFlag) {
+        if (!addRouFlag) {
             addRouFlag = true
             // 3.利用global属性，让渲染菜单的组件sideMeuns.vue重新生成左侧菜单
             global.antRouter = fixedRouter

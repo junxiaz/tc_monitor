@@ -92,7 +92,7 @@
           <el-form-item label="用户组名称" prop="groupName">
             <el-input v-model="updateForm.groupName" autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item label="主送人" prop="toUserId">
+          <el-form-item label="主送人">
             <el-select v-model="updateForm.toUserId" multiple>
               <el-option
                 v-for="item in option"
@@ -102,7 +102,7 @@
               ></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="抄送人" prop="ccUserId">
+          <el-form-item label="抄送人">
             <el-select v-model="updateForm.ccUserId" multiple>
               <el-option
                 v-for="item in option"
@@ -130,22 +130,33 @@ import {
   deleteGroupUser
 } from "@/api";
 export default {
+  name: "Group",
   data() {
     return {
-      addDialog: false,  //添加弹框开关
-      updateDialog: false,  //修改弹框开关
-      params: {  //列表参数
+      addDialog: false, //添加弹框开关
+      updateDialog: false, //修改弹框开关
+      params: {
+        //列表参数
         pageSize: 10,
         pageNum: 1,
         total: 0
       },
-      form: {  //添加弹框数据
+      form: {
+        //添加弹框数据
         groupName: "",
         toUserId: [],
         ccUserId: []
       },
-      updateForm: {},  //修改弹框数据
-      rules: {  //表单输入规则
+      updateForm: {
+        groupId: "",
+        groupName: "",
+        toUserName: [],
+        toUserId: [],
+        ccUserName: [],
+        ccUserId: []
+      }, //修改弹框数据
+      rules: {
+        //表单输入规则
         groupName: [
           { required: true, message: "请输入用户组账号", trigger: "blur" }
         ],
@@ -169,20 +180,24 @@ export default {
     //打开修改弹框
     handleEdit(index, row) {
       this.updateDialog = true;
-      this.updateForm = row;
-      window.console.log(row.toUserList);
-      row.toUserList.map(item => this.updateForm.toUserId.push(item.userCode));
-      row.ccUserList.map(item => this.updateForm.ccUserId.push(item.userCode));
-      // this.updateForm.toUserId = String(row.toUserId)
+      this.updateForm.groupName = row.groupName;
+      this.updateForm.groupId = row.id;
+      row.toUserList.map(item => {
+        this.updateForm.toUserName.push(item.userName)
+        this.updateForm.toUserId.push(item.id)
+      });
+      row.ccUserList.map(item => {
+        this.updateForm.ccUserName.push(item.userName)
+        this.updateForm.ccUserId.push(item.id)
+      });
     },
     handleDelete(index, row) {
-      window.console.log(index, row);
       this.$confirm("此操作将永久删除该数据, 是否继续?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       }).then(() => {
-          this.deleteTable(row);
+          this.deleteTable({groupId: row.id});
         }).catch(() => {
           this.$message({
             type: "info",
@@ -214,6 +229,14 @@ export default {
         this.addDialog = false;
       } else if (formName == "updateForm") {
         this.updateDialog = false;
+        this.updateForm = {
+          groupId: "",
+          groupName: "",
+          toUserId: [],
+          toUserName: [],
+          ccUserId: [],
+          ccUserName: [],
+        };
       }
       if (this.$refs[formName] !== undefined) {
         this.$nextTick(() => {
@@ -224,7 +247,6 @@ export default {
     // 异步添加数据
     async addTable() {
       const data = this.form;
-      window.console.log(data);
       const result = await addGroupUser(data);
       if (result.code === "0000") {
         this.$message({
@@ -250,6 +272,7 @@ export default {
           type: "success"
         });
         this.initTable();
+        this.handleClose("", "updateForm");
       } else {
         this.$message({
           message: result.msg,

@@ -2,8 +2,7 @@
   <div class>
     <!--导航菜单-->
     <el-menu
-      :default-active="activeIndex"
-      class="el-menu-demo"
+      :default-active="$route.path"
       background-color="#2B3C6F"
       text-color="#fff"
       active-text-color="#1EABFF"
@@ -39,11 +38,11 @@ export default {
       default: () => []
     }
   },
-  watch: {
-  '$route' () {
-    this.activeIndex = this.$refs.menu.activeIndex;
-  }
-  },
+  // watch: {
+  // '$route' () {
+  //   this.activeIndex = this.$refs.menu.activeIndex;
+  // }
+  // },
   data() {
     return {
       menus: "",

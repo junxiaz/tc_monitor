@@ -3,21 +3,22 @@
     <template>
       <!-- 操作按钮 -->
       <el-row class="btns">
-        <!-- <el-button type="primary" @click="addDialog = true" size="small" icon="el-icon-plus">添加用户</el-button> -->
-        <el-button type="primary" @click="$router.push('/add')" size="small" icon="el-icon-plus">添加用户</el-button>
+        <el-button type="primary" @click="addDialog = true" size="small" icon="el-icon-plus">添加接口</el-button>
+        <!-- <el-button type="primary" @click="$router.push('/add')" size="small" icon="el-icon-plus">添加接口</el-button> -->
       </el-row>
       <!-- 数据表格 -->
       <el-table :data="tableData" border>
-        <el-table-column align="center" prop="userName" label="用户名称"></el-table-column>
-        <el-table-column align="center" prop="userCode" label="用户账号"></el-table-column>
-        <el-table-column align="center" prop="userType" label="用户类型">
+        <el-table-column align="center" prop="apiDesc" label="接口描述"></el-table-column>
+        <el-table-column align="center" prop="apiUrl" label="接口地址"></el-table-column>
+        <el-table-column align="center" prop="successResult" label="成功结果"></el-table-column>
+        <el-table-column align="center" prop="sendFlag" label="模板类型">
           <template slot-scope="scope">
-            <template v-if="scope.row.userType == '1'">管理员</template>
-            <template v-if="scope.row.userType == '2'">普通用户</template>
+            <template v-if="scope.row.sendFlag == '1'">邮件</template>
           </template>
         </el-table-column>
-        <el-table-column align="center" prop="userMobile" label="手机"></el-table-column>
-        <el-table-column align="center" prop="userMail" label="邮箱"></el-table-column>
+        <el-table-column align="center" prop="systemName" label="项目"></el-table-column>
+        <el-table-column align="center" prop="groupName" label="用户组"></el-table-column>
+        <el-table-column align="center" prop="templateName" label="预警模板"></el-table-column>
         <el-table-column align="center" fixed="right" label="操作" width="100">
           <template slot-scope="scope">
             <el-button type="text" size="small" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
@@ -39,29 +40,76 @@
           ></el-pagination>
         </el-col>
       </el-row>
-      <!-- 添加弹框 -->
-      <el-dialog title="添加用户" :visible.sync="addDialog" width="635px" center :before-close="((done) => {handleClose(done,'addForm')})">
-        <el-form :inline="true" ref="addForm" :rules="rules" :model="form" label-width="80px">
-          <el-form-item label="用户账号" prop="userCode">
-            <el-input v-model="form.userCode" autocomplete="off"></el-input>
+      <el-dialog
+        title="添加接口"
+        :visible.sync="addDialog"
+        width="635px"
+        center
+        :before-close="((done) => {handleClose(done,'addForm')})"
+      >
+        <el-form
+          :inline="true"
+          ref="addForm"
+          :rules="rules"
+          :model="form"
+          class="formCss"
+          label-width="80px"
+        >
+          <el-form-item label="接口描述" prop="apiDesc">
+            <el-input v-model="form.apiDesc" autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item label="密码" prop="userPwd">
-            <el-input v-model="form.userPwd" autocomplete="off"></el-input>
+          <el-form-item label="接口地址" prop="apiUrl">
+            <el-input v-model="form.apiUrl" autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item label="用户姓名" prop="userName">
-            <el-input v-model="form.userName" autocomplete="off"></el-input>
+          <el-form-item label="成功结果" prop="successResult">
+            <el-input v-model="form.successResult" autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item label="手机" prop="userMobile">
-            <el-input v-model="form.userMobile" autocomplete="off"></el-input>
-          </el-form-item>
-          <el-form-item label="用户类型" prop="userType">
-            <el-select v-model="form.userType">
-              <el-option label="管理员" value="1"></el-option>
-              <el-option label="普通用户" value="2"></el-option>
+          <el-form-item label="模板类型" prop="sendFlag">
+            <el-select v-model="form.sendFlag">
+              <el-option label="邮件" value="1"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="邮箱" prop="userMail">
-            <el-input style="width: 300px;" v-model="form.userMail" autocomplete="off"></el-input>
+          <el-form-item label="项目" prop="systemId">
+            <el-select v-model="form.systemId">
+              <el-option
+                v-for="item in options.systems"
+                :key="item.id"
+                :label="item.systemName"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="用户组" prop="groupId">
+            <el-select v-model="form.groupId" @change="onSelectedGroup($event)">
+              <el-option
+                v-for="item in options.groups"
+                :key="item.id"
+                :label="item.groupName"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="收件人">
+            <el-input placeholder="选定用户组后自动填充" v-model="options.toUserList" :disabled="true" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="抄送人">
+            <el-input placeholder="选定用户组后自动填充" v-model="options.ccUserList" :disabled="true" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="预警模板" prop="templateId">
+            <el-select v-model="form.templateId" @change="onSelectedTemplate($event)">
+              <el-option
+                v-for="item in options.templates"
+                :key="item.id"
+                :label="item.templateName"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="预警主题">
+            <el-input placeholder="选定预警模板后自动填充" v-model="options.mailTheme" :disabled="true" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="预警内容">
+            <el-input placeholder="选定预警模板后自动填充" v-model="options.mailContent" :disabled="true" autocomplete="off"></el-input>
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
@@ -69,31 +117,75 @@
         </div>
       </el-dialog>
       <!-- 修改弹框 -->
-      <el-dialog title="修改用户" :visible.sync="updateDialog" width="635px" center :before-close="((done) => {handleClose(done,'updateForm')})">
-        <el-form ref="updateForm" :inline="true" :rules="rules" :model="updateForm" label-width="80px">
-          <!-- <el-form-item label="用户名称" prop="name">
-            <el-input v-model="updateForm.name" placeholder="请输入用户名称" autocomplete="off"></el-input>
-          </el-form-item> -->
-          <el-form-item label="用户账号" prop="userCode">
-            <el-input v-model="updateForm.userCode" autocomplete="off"></el-input>
+      <el-dialog
+        title="修改接口"
+        :visible.sync="updateDialog"
+        width="635px"
+        center
+        :before-close="((done) => {handleClose(done,'updateForm')})"
+      >
+        <el-form
+          ref="updateForm"
+          :inline="true"
+          :rules="rules"
+          :model="updateForm"
+          label-width="80px"
+        >
+          <el-form-item label="接口描述" prop="apiDesc">
+            <el-input v-model="updateForm.apiDesc" autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item label="密码" prop="userPwd">
-            <el-input v-model="updateForm.userPwd" autocomplete="off"></el-input>
+          <el-form-item label="接口地址" prop="apiUrl">
+            <el-input v-model="updateForm.apiUrl" autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item label="用户姓名" prop="userName">
-            <el-input v-model="updateForm.userName" autocomplete="off"></el-input>
+          <el-form-item label="成功结果" prop="successResult">
+            <el-input v-model="updateForm.successResult" autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item label="手机" prop="userMobile">
-            <el-input v-model="updateForm.userMobile" autocomplete="off"></el-input>
-          </el-form-item>
-          <el-form-item label="用户类型" prop="userType">
-            <el-select v-model="updateForm.userType">
-              <el-option label="管理员" value="1"></el-option>
-              <el-option label="普通用户" value="2"></el-option>
+          <el-form-item label="模板类型" prop="sendFlag">
+            <el-select v-model="updateForm.sendFlag">
+              <el-option label="邮件" value="1"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="邮箱" prop="userMail">
-            <el-input style="width: 300px;" v-model="updateForm.userMail" autocomplete="off"></el-input>
+          <el-form-item label="项目" prop="systemId">
+            <el-select v-model="updateForm.systemId">
+              <el-option
+                v-for="item in options.systems"
+                :key="item.id"
+                :label="item.systemName"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="用户组" prop="groupId">
+            <el-select v-model="updateForm.groupId" @change="onSelectedGroup($event)">
+              <el-option
+                v-for="item in options.groups"
+                :key="item.id"
+                :label="item.groupName"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="收件人">
+            <el-input placeholder="选定用户组后自动填充" v-model="options.toUserList" :disabled="true" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="抄送人">
+            <el-input placeholder="选定用户组后自动填充" v-model="options.ccUserList" :disabled="true" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="预警模板" prop="templateId">
+            <el-select v-model="updateForm.templateId" @change="onSelectedTemplate($event)">
+              <el-option
+                v-for="item in options.templates"
+                :key="item.id"
+                :label="item.templateName"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="预警主题">
+            <el-input placeholder="选定预警模板后自动填充" v-model="options.mailTheme" :disabled="true" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="预警内容">
+            <el-input placeholder="选定预警模板后自动填充" v-model="options.mailContent" :disabled="true" autocomplete="off"></el-input>
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
@@ -104,9 +196,25 @@
   </div>
 </template>
 
+<style lang="scss" scoped>
+.wrap .el-input,
+.wrap .el-select {
+  width: 200px;
+}
+</style>
+
 <script>
-import { reqListUser, addUser, updateUser,deleteUser } from "@/api";
+import {
+  reqListApiInfo,
+  addApiInfo,
+  updateApiInfo,
+  deleteApiInfo,
+  reqSystem,
+  reqGroup,
+  reqTemplate
+} from "@/api";
 export default {
+  name: "Api",
   data() {
     return {
       value: false,
@@ -118,40 +226,65 @@ export default {
         total: 0
       },
       form: {
-        userCode: "",
-        userMail: "",
-        userMobile: "",
-        userName: "",
-        userPwd: "",
-        userType: ""
+        apiDesc: "",
+        apiUrl: "",
+        successResult: "",
+        sendFlag: "",
+        systemId: "",
+        groupId: "",
+        templateId: "",
+      },
+      options: {
+        systems: [],
+        groups: [],
+        templates: [],
+        toUserList: '',
+        ccUserList: '',
+        mailTheme: '',
+        mailContent: '',
       },
       updateForm: {},
       //   表单输入规则
       rules: {
-        userCode: [
-          { required: true, message: "请输入用户账号", trigger: "blur" }
+        apiDesc: [
+          { required: true, message: "请输入接口描述", trigger: "blur" }
         ],
-        userPwd: [
-          { required: true, message: "请输入用户密码", trigger: "blur" }
+        apiUrl: [
+          { required: true, message: "请输入接口地址", trigger: "blur" }
         ],
-        userName: [
-          { required: true, message: "请输入用户姓名", trigger: "blur" }
+        successResult: [
+          { required: true, message: "请输入成功结果", trigger: "blur" }
         ],
-        userMobile: [
-          { required: true, pattern: /^1[34578]\d{9}$/, message: "请输入手机号码", trigger: "blur" }
+        sendFlag: [
+          { required: true, message: "请选择模板类型", trigger: "blur" }
         ],
-        userType: [
-          { required: true, message: "请选择用户类型", trigger: "blur" }
-        ],
-        userMail: [
-          { required: true, message: "请输入邮箱", trigger: "blur" },
-          { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
+        systemId: [{ required: true, message: "请选择项目", trigger: "blur" }],
+        groupId: [{ required: true, message: "请选择用户组", trigger: "blur" }],
+        templateId: [
+          { required: true, message: "请选择预警模板", trigger: "blur" }
         ]
       },
       tableData: []
     };
   },
   methods: {
+    //自动填充
+    onSelectedGroup(event) {
+      let obj = {}, toUserList = '', ccUserList=''
+      obj = this.options.groups.find(item => item.id === event);
+      toUserList = obj.toUserList.map(item => item.userName).toString()
+      ccUserList = obj.ccUserList.map(item => item.userName).toString()
+      this.$set(this.options, 'toUserList', toUserList)
+      this.$set(this.options, 'ccUserList', ccUserList)
+    },
+    onSelectedTemplate(event) {
+      let obj = {}, mailTheme = '', mailContent= ''
+      obj = this.options.templates.find(item => item.id === event);
+      mailTheme = obj.mailTheme
+      mailContent = obj.mailContent
+      this.$set(this.options, 'mailTheme', mailTheme)
+      this.$set(this.options, 'mailContent', mailContent)
+    },
     //页码
     handleCurrentChange(val) {
       this.params.pageNum = val;
@@ -161,7 +294,7 @@ export default {
     handleEdit(index, row) {
       this.updateDialog = true;
       this.updateForm = row;
-      this.updateForm.userType = String(row.userType)
+      this.updateForm.sendFlag = String(row.sendFlag);
     },
     // 删除数据
     handleDelete(index, row) {
@@ -170,9 +303,11 @@ export default {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
-      }).then(() => {
+      })
+        .then(() => {
           this.deleteTable(row);
-        }).catch(() => {
+        })
+        .catch(() => {
           this.$message({
             type: "info",
             message: "已取消删除"
@@ -196,24 +331,23 @@ export default {
       });
     },
     // 取消弹框并清空
-    handleClose(done,formName) {
-      done();         
-      if(formName == "addForm"){
+    handleClose(done, formName) {
+      done();
+      if (formName == "addForm") {
         this.addDialog = false;
-      }
-      else if(formName == "updateForm"){
+      } else if (formName == "updateForm") {
         this.updateDialog = false;
       }
       if (this.$refs[formName] !== undefined) {
         this.$nextTick(() => {
           this.$refs[formName].resetFields();
-        })
-      }     
+        });
+      }
     },
     // 异步添加数据
     async addTable() {
       const data = this.form;
-      const result = await addUser(data);
+      const result = await addApiInfo(data);
       if (result.code === "0000") {
         this.$message({
           message: "恭喜你，数据插入成功",
@@ -230,7 +364,7 @@ export default {
     // 异步修改数据
     async updateTable() {
       const data = this.updateForm;
-      const result = await updateUser(data);
+      const result = await updateApiInfo(data);
       if (result.code === "0000") {
         this.$message({
           message: "恭喜你，数据修改成功",
@@ -246,7 +380,7 @@ export default {
     },
     // 异步修改数据
     async deleteTable(data) {
-      const result = await deleteUser(data);
+      const result = await deleteApiInfo(data);
       if (result.code === "0000") {
         this.$message({
           message: "数据删除成功",
@@ -263,17 +397,36 @@ export default {
     // 异步获取列表信息
     async initTable() {
       const data = this.params;
-      const result = await reqListUser(data);
+      const result = await reqListApiInfo(data);
       if (result.code === "0000") {
-        // result.datas.records
         this.tableData = result.datas.records;
-
         this.params.total = result.datas.total;
       }
+    },
+    // 异步获取选择框信息
+    async initSystems() {
+      const data = this.params;
+      const result = await reqSystem(data);
+      this.options.systems = result;
+    },
+    // 异步获取选择框信息
+    async initGroups() {
+      const data = this.params;
+      const result = await reqGroup(data);
+      this.options.groups = result;
+    },
+    // 异步获取选择框信息
+    async initTemplates() {
+      const data = this.params;
+      const result = await reqTemplate(data);
+      this.options.templates = result;
     }
   },
   mounted() {
     this.initTable();
+    this.initSystems();
+    this.initGroups();
+    this.initTemplates();
   }
 };
 </script>

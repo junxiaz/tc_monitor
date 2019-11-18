@@ -47,9 +47,9 @@ router.beforeEach((to, from, next) => {
             // 1.利用global属性，让渲染菜单的组件sideMeuns.vue重新生成左侧菜单
             global.antRouter = fixedRouter
             // 2.将生成好的路由addRoutes
-            router.addRoutes(fixedRouter)
+            // router.addRoutes(fixedRouter)
             // 3.push之后，会重新进入到beforeEach的钩子里,直接进入第一个if判断
-            router.push({ path: to.path })
+            // router.push({ path: to.path })
         }
     } else {
         // 用户没登录，跳转到登录页面

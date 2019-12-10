@@ -7,7 +7,7 @@
         <!-- <el-button type="primary" @click="$router.push('/add')" size="small" icon="el-icon-plus">添加接口</el-button> -->
       </el-row>
       <!-- 数据表格 -->
-      <el-table :data="tableData" border>
+      <el-table :data="tableData" border v-loading="statu">
         <el-table-column align="center" prop="apiDesc" label="接口描述"></el-table-column>
         <el-table-column align="center" prop="apiUrl" label="接口地址"></el-table-column>
         <el-table-column align="center" prop="successResult" label="成功结果"></el-table-column>
@@ -217,6 +217,7 @@ export default {
   name: "Api",
   data() {
     return {
+      statu: true,
       value: false,
       addDialog: false,
       updateDialog: false,
@@ -295,6 +296,8 @@ export default {
       this.updateDialog = true;
       this.updateForm = row;
       this.updateForm.sendFlag = String(row.sendFlag);
+      this.onSelectedGroup(row.groupId)
+      this.onSelectedTemplate(row.templateId)
     },
     // 删除数据
     handleDelete(index, row) {
@@ -401,6 +404,7 @@ export default {
       if (result.code === "0000") {
         this.tableData = result.datas.records;
         this.params.total = result.datas.total;
+        this.statu = false;
       }
     },
     // 异步获取选择框信息

@@ -26,7 +26,7 @@ export const deleteTemplate = (data) => ajax(BASE_URL + '/systemmonitor/mailTemp
 
 export const reqListApiInfo = (data) => ajax(BASE_URL + '/systemmonitor/apiInfo/listApiInfo', data, 'POST') //接口信息列表
 export const addApiInfo = (data) => ajax(BASE_URL + '/systemmonitor/apiInfo/addApiInfo', data, 'POST') //增加接口信息
-export const updateApiInfo = (data) => ajax(BASE_URL + '/systemmonitor/apiInfo/updateApiInfo', data, 'POST') //修改接口信息
+export const updateApiInfo = (data) => ajax(BASE_URL + '/systemmonitor/apiInfo/UpdateApiInfo', data, 'POST') //修改接口信息
 export const deleteApiInfo = (data) => ajax(BASE_URL + '/systemmonitor/apiInfo/delApiInfo', data, 'POST') //删除接口信息
 
 // 选择框

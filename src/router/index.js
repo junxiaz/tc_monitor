@@ -23,7 +23,6 @@ export const fixedRouter = [
             { path: '/user', hideen: false, name: '用户管理', icon: 'iconfont icon-yonghu-tianchong', component: rb => require(['@/views/User.vue'], rb) },
             { path: '/group', hideen: false, name: '用户组管理', icon: 'iconfont icon-usergroup1', component: rb => require(['@/views/Group.vue'], rb) },
             { path: '/templet', hideen: false, name: '模板管理', icon: 'iconfont icon-moban', component: rb => require(['@/views/Templet.vue'], rb) },
-            { path: '/add', hideen: true, name: '添加接口', component: rb => require(['@/views/AddApi.vue'], rb) },
         ]
     },
 ]

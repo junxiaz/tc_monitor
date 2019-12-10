@@ -6,7 +6,7 @@
         <el-button type="primary" @click="addDialog = true" size="small" icon="el-icon-plus">添加模板</el-button>
       </el-row>
       <!-- 数据表格 -->
-      <el-table :data="tableData" border>
+      <el-table :data="tableData" border v-loading="statu">
         <el-table-column align="center" prop="templateName" label="模板名称"></el-table-column>
         <el-table-column align="center" prop="mailTheme" label="邮件主题"></el-table-column>
         <el-table-column align="center" prop="mailContent" label="邮件内容"></el-table-column>
@@ -74,6 +74,7 @@ import { reqListTemplatePage, addTemplate, updateTemplate,deleteTemplate } from 
 export default {
   data() {
     return {
+      statu: true,
       value: false,
       addDialog: false,
       updateDialog: false,
@@ -229,6 +230,7 @@ export default {
         // result.datas.records
         this.tableData = result.datas.records;
         this.params.total = result.datas.total;
+        this.statu = false
       }
     }
   },

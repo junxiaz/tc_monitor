@@ -6,7 +6,7 @@
         <el-button type="primary" @click="addDialog = true" size="small" icon="el-icon-plus">添加用户</el-button>
       </el-row>
       <!-- 数据表格 -->
-      <el-table :data="tableData" border>
+      <el-table :data="tableData" border v-loading="statu">
         <el-table-column align="center" prop="userName" label="用户名称"></el-table-column>
         <el-table-column align="center" prop="userCode" label="用户账号"></el-table-column>
         <el-table-column align="center" prop="userType" label="用户类型">
@@ -108,6 +108,7 @@ import { reqListUser, addUser, updateUser,deleteUser } from "@/api";
 export default {
   data() {
     return {
+      statu: true,
       value: false,
       addDialog: false,
       updateDialog: false,
@@ -264,10 +265,9 @@ export default {
       const data = this.params;
       const result = await reqListUser(data);
       if (result.code === "0000") {
-        // result.datas.records
         this.tableData = result.datas.records;
-
         this.params.total = result.datas.total;
+        this.statu = false
       }
     }
   },

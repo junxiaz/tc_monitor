@@ -6,7 +6,7 @@
         <el-button type="primary" @click="addDialog = true" size="small" icon="el-icon-plus">添加项目</el-button>
       </el-row>
       <!-- 数据表格 -->
-      <el-table :data="tableData" border>
+      <el-table :data="tableData" border v-loading="statu">
         <el-table-column align="center" prop="systemName" label="项目名称"></el-table-column>
         <el-table-column align="center" prop="createTime" label="创建时间"></el-table-column>
         <el-table-column align="center" fixed="right" label="操作" width="100">
@@ -61,6 +61,7 @@ import { reqListSystemPage, addSystem, updateSystem,deleteSystem } from "@/api";
 export default {
   data() {
     return {
+      statu: true,
       value: false,
       addDialog: false,
       updateDialog: false,
@@ -201,10 +202,9 @@ export default {
       const data = this.params;
       const result = await reqListSystemPage(data);
       if (result.code === "0000") {
-        // result.datas.records
         this.tableData = result.datas.records;
-
         this.params.total = result.datas.total;
+        this.statu = false;
       }
     }
   },

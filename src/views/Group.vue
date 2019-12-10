@@ -6,7 +6,7 @@
         <el-button type="primary" @click="addDialog = true" size="small" icon="el-icon-plus">添加用户组</el-button>
       </el-row>
       <!-- 数据表格 -->
-      <el-table :data="tableData" border>
+      <el-table :data="tableData" border v-loading="statu">
         <el-table-column align="center" prop="groupName" label="用户组名称"></el-table-column>
         <el-table-column align="center" prop="toUserList" label="主送人">
           <template slot-scope="scope" v-if="scope.row.toUserList.length">
@@ -133,6 +133,7 @@ export default {
   name: "Group",
   data() {
     return {
+      statu: true,
       addDialog: false, //添加弹框开关
       updateDialog: false, //修改弹框开关
       params: {
@@ -303,6 +304,7 @@ export default {
       if (result.code === "0000") {
         this.tableData = result.datas.records;
         this.params.total = result.datas.total;
+        this.statu = false;
       }
     },
     // 异步获取用户选择框信息

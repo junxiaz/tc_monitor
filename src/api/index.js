@@ -1,6 +1,8 @@
 import ajax from './ajax'
-
-export const reqUserLogin = ({ userName, userPwd }) => ajax(BASE_URL + '/web/user/userLogin', { userName, userPwd }, 'POST') //用户名登录
+// const BASE_URL = 'http://101.231.106.162:9105/jewelry/web'
+//const BASE_URL = 'http://192.168.1.86:8090/jewelry/web'
+const BASE_URL = 'http://192.168.1.81:8088'
+export const reqUserLogin = ({userName,userPwd}) => ajax(BASE_URL + '/web/user/userLogin', {userName,userPwd}, 'POST') //用户名登录
 
 export const reqListUser = (data) => ajax(BASE_URL + '/web/user/listUser', data, 'POST') //用户信息列表
 export const addUser = (data) => ajax(BASE_URL + '/web/user/addUser', data, 'POST') //增加用户信息
